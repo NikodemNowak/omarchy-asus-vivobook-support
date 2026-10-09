@@ -122,5 +122,9 @@
     "label": "100%",
     "action": "\"$HOME/.local/share/asus-vivobook-support/charge-limit.py\" 100",
     "checked": "[[ $(cat /sys/class/power_supply/BAT1/charge_control_end_threshold) == 100 ]]"
+  },
+  "vivobook.microphone.gain": {
+    "label": "Usuń przesterowanie mikrofonu",
+    "action": "\"$HOME/.local/share/asus-vivobook-support/fix-microphone-gain.sh\" --persist"
   }
 }

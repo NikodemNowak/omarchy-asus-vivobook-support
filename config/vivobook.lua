@@ -17,9 +17,9 @@ hl.unbind("SUPER + P")
 o.bind("SUPER + P", "Displays", "omarchy-menu toggle vivobook.displays")
 o.bind("XF86Launch1", "Laptop hardware", "omarchy-menu toggle vivobook")
 
--- F8: KEY_BLUETOOTH. F10: KEY_F14 (184 + XKB offset 8 = code:192).
+-- F8: hwdb remaps KEY_BLUETOOTH to KEY_PROG2 (XF86Launch2). F10: KEY_F14 (184 + XKB offset 8 = code:192).
 -- The default XKB map names KEY_F14 XF86Launch5, so bind its code directly.
-o.bind("XF86Bluetooth", "Emojis", "omarchy-shell shell toggle omarchy.emojis")
+o.bind("XF86Launch2", "Emojis", "omarchy-shell shell toggle omarchy.emojis")
 o.bind("code:192", "Microphone modes", "omarchy-menu toggle vivobook.microphone")
 
 -- ASUS emoji keys can also emit the Windows emoji shortcut.
