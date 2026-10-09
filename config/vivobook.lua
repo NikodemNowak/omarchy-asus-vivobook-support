@@ -10,17 +10,23 @@ end
 hl.env("PATH", table.concat(entries, ":"))
 
 -- Linux names for ASUS display and MyASUS hotkeys.
+hl.unbind("XF86Display")
 o.bind("XF86Display", "Displays", "omarchy-menu toggle vivobook.displays")
+hl.unbind("XF86DisplayToggle")
 o.bind("XF86DisplayToggle", "Displays", "omarchy-menu toggle vivobook.displays")
 -- ASUS projection keys can emit Windows+P; Omarchy normally uses this for pseudo windows.
 hl.unbind("SUPER + P")
 o.bind("SUPER + P", "Displays", "omarchy-menu toggle vivobook.displays")
+hl.unbind("XF86Launch1")
 o.bind("XF86Launch1", "Laptop hardware", "omarchy-menu toggle vivobook")
 
 -- F8: hwdb remaps KEY_BLUETOOTH to KEY_PROG2 (XF86Launch2). F10: KEY_F14 (184 + XKB offset 8 = code:192).
 -- The default XKB map names KEY_F14 XF86Launch5, so bind its code directly.
+hl.unbind("XF86Launch2")
 o.bind("XF86Launch2", "Emojis", "omarchy-shell shell toggle omarchy.emojis")
+hl.unbind("code:192")
 o.bind("code:192", "Microphone modes", "omarchy-menu toggle vivobook.microphone")
 
 -- ASUS emoji keys can also emit the Windows emoji shortcut.
+hl.unbind("SUPER + PERIOD")
 o.bind("SUPER + PERIOD", "Emojis", "omarchy-shell shell toggle omarchy.emojis")
