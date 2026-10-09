@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# omarchy:summary=Adjust keyboard backlight brightness using available steps.
+# omarchy:args=[--no-osd] <up|down|cycle|off|restore>
+
+no_osd=0
+if [[ ${1:-} == "--no-osd" ]]; then
+  no_osd=1
+  shift
+fi
+
+direction="${1:-up}"
+
+# Find keyboard backlight device (look for *kbd_backlight* pattern in leds class).
+device=""
+for candidate in /sys/class/leds/*kbd_backlight*; do
+  if [[ -e $candidate ]]; then
+    device="$(basename "$candidate")"
+    break
+  fi
+done
+
+if [[ -z $device ]]; then
+  echo "No keyboard backlight device found" >&2
+  exit 1
+fi
+
+# Serialize idle, wake, and key events. Keep the first idle snapshot until
+# wake, including an intentional zero, instead of saving the blanked level.
+state_dir="${XDG_RUNTIME_DIR:-/tmp/omarchy-brightness-keyboard-$UID}"
+mkdir -p "$state_dir" || exit 1
+exec {lock_fd}>"$state_dir/omarchy-brightness-keyboard-$device.lock"
+flock "$lock_fd" || exit 1
+blanked_file="$state_dir/omarchy-brightness-keyboard-$device.blanked"
+
+if [[ $direction == "off" ]]; then
+  if [[ ! -e $blanked_file ]]; then
+    brightnessctl -sd "$device" set 0 >/dev/null || exit 1
+    touch "$blanked_file"
+  fi
+  exit 0
+elif [[ $direction == "restore" ]]; then
+  brightnessctl -rd "$device" >/dev/null || exit 1
+  rm -f "$blanked_file"
+  exit 0
+fi
+
+# Get current and max brightness to determine step size.
+max_brightness="$(brightnessctl -d "$device" max)"
+current_brightness="$(brightnessctl -d "$device" get)"
+
+# Calculate step as 10% of max brightness. Keyboards with many levels (e.g. 512)
+# need larger steps; keyboards with few levels (e.g. 3) fall back to step=1.
+step=$(( max_brightness / 10 ))
+(( step < 1 )) && step=1
+
+if [[ $direction == "cycle" ]]; then
+  new_brightness=$(( current_brightness + step ))
+  (( new_brightness > max_brightness )) && new_brightness=0
+elif [[ $direction == "up" ]]; then
+  new_brightness=$(( current_brightness + step ))
+  (( new_brightness > max_brightness )) && new_brightness=$max_brightness
+else
+  new_brightness=$(( current_brightness - step ))
+  (( new_brightness < 0 )) && new_brightness=0
+fi
+
+# Set the new brightness.
+brightnessctl -d "$device" set "$new_brightness" >/dev/null || exit 1
+# A manual adjustment while blanked becomes the new value to restore.
+brightnessctl -sd "$device" >/dev/null || exit 1
+rm -f "$blanked_file"
+if (( ! no_osd )); then
+  if (( max_brightness <= 10 )); then
+    omarchy-osd -i keyboard -p "$(( new_brightness * 100 / max_brightness ))" --progress-text "$new_brightness/$max_brightness"
+  else
+    omarchy-osd -i keyboard -p "$(( new_brightness * 100 / max_brightness ))"
+  fi
+fi
